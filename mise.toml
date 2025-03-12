@@ -1,0 +1,2 @@
+[env]
+EAS_BUILD_SIMULATOR = "iPhone 16 Pro Max, iOS 18.3"
