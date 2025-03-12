@@ -3,7 +3,7 @@ import { bind } from '@react-rxjs/core'
 import React, { useRef } from 'react'
 import { FlatList, StyleSheet, Pressable } from 'react-native'
 import { map } from 'rxjs'
-import { Text, useThemeColor } from './Themed'
+import { Text, useThemeColor, useThemedProp } from './Themed'
 
 const Item = ({
   item,
@@ -18,14 +18,11 @@ const Item = ({
       marginTop: 20,
     },
     item: {
-      backgroundColor: useThemeColor({}, 'background'),
-      borderColor: useThemeColor(
-        {
-          light: '#ccc',
-          dark: '#444',
-        },
-        'background',
-      ),
+      backgroundColor: useThemeColor('background-200'),
+      borderColor: useThemedProp({
+        light: '#ccc',
+        dark: '#444',
+      }),
       borderWidth: 1,
       paddingHorizontal: 14,
       paddingVertical: 8,

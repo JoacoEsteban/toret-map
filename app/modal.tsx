@@ -9,8 +9,10 @@ export default function ModalScreen() {
       <Text style={styles.title}>Modal</Text>
       <View
         style={styles.separator}
-        lightColor="#eee"
-        darkColor="rgba(255,255,255,0.1)"
+        color={{
+          light: '#eee',
+          dark: 'rgba(255,255,255,0.1)',
+        }}
       />
 
       {/* Use a light status bar on iOS to account for the black space above the modal */}

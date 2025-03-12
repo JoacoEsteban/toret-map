@@ -9,40 +9,65 @@ import Colors from '@/constants/Colors'
 import { useColorScheme } from './useColorScheme'
 
 type ThemeProps = {
-  lightColor?: string
-  darkColor?: string
+  color?: {
+    light: string
+    dark: string
+  }
 }
 
 export type TextProps = ThemeProps & DefaultText['props']
 export type ViewProps = ThemeProps & DefaultView['props']
 
-export function useThemeColor(
-  props: { light?: string; dark?: string },
-  colorName: keyof typeof Colors.light & keyof typeof Colors.dark,
-) {
+export function useThemedProp(props: { light: string; dark: string }) {
   const theme = useColorScheme()
   const colorFromProps = props[theme]
 
-  if (colorFromProps) {
-    return colorFromProps
-  } else {
-    return Colors[theme][colorName]
+  return colorFromProps
+}
+
+export function useThemeColor(
+  colorName: keyof typeof Colors.light & keyof typeof Colors.dark,
+) {
+  const theme = useColorScheme()
+  return Colors[theme][colorName]
+}
+
+export function useFallbackedThemeProp(
+  props: { light: string; dark: string },
+  fallback: undefined,
+): string
+export function useFallbackedThemeProp(
+  props: { light: string; dark: string } | undefined,
+  fallback: keyof typeof Colors.light & keyof typeof Colors.dark,
+): string
+export function useFallbackedThemeProp(
+  props: undefined,
+  fallback: undefined,
+): void
+export function useFallbackedThemeProp(
+  props: { light: string; dark: string } | undefined,
+  fallback: (keyof typeof Colors.light & keyof typeof Colors.dark) | undefined,
+): string {
+  if (!props && !fallback) {
+    throw new Error('Either props or fallback must be provided')
   }
+  return props ? useThemedProp(props) : useThemeColor(fallback!)
 }
 
 export function Text(props: TextProps) {
-  const { style, lightColor, darkColor, ...otherProps } = props
-  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text')
+  const { style, color, ...otherProps } = props
 
-  return <DefaultText style={[{ color }, style]} {...otherProps} />
+  return (
+    <DefaultText
+      style={[{ color: useFallbackedThemeProp(color, 'text') }, style]}
+      {...otherProps}
+    />
+  )
 }
 
 export function View(props: ViewProps) {
-  const { style, lightColor, darkColor, ...otherProps } = props
-  const backgroundColor = useThemeColor(
-    { light: lightColor, dark: darkColor },
-    'background',
-  )
+  const { style, color, ...otherProps } = props
+  const backgroundColor = useFallbackedThemeProp(color, 'background')
 
   return <DefaultView style={[{ backgroundColor }, style]} {...otherProps} />
 }
