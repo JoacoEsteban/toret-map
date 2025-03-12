@@ -6,7 +6,7 @@ export const LocateUserButton = ({ onPress }: { onPress: () => void }) => {
   const styles = StyleSheet.create({
     container: {
       position: 'absolute',
-      backgroundColor: useThemeColor({}, 'background'),
+      backgroundColor: useThemeColor('background'),
       bottom: 20,
       right: 20,
       padding: 15,
@@ -19,7 +19,7 @@ export const LocateUserButton = ({ onPress }: { onPress: () => void }) => {
     <Pressable style={styles.container} onPress={onPress}>
       <MaterialIcons
         size={28}
-        color={useThemeColor({}, 'text')}
+        color={useThemeColor('text')}
         name="my-location"
       />
     </Pressable>
