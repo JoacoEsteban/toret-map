@@ -1,31 +1,24 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native'
 
-import EditScreenInfo from '@/components/EditScreenInfo';
-import { Text, View } from '@/components/Themed';
+import { View } from '@/components/Themed'
+import Map from '@/components/Map'
+import { Subscribe } from '@react-rxjs/core'
+import { useContext, useEffect, useRef } from 'react'
+import { GlobalContext } from '../global-context'
 
-export default function TabOneScreen() {
+export default function MapScreen() {
+  const { mapApiInstance } = useContext(GlobalContext) ?? {}
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Tab One</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/(tabs)/index.tsx" />
-    </View>
-  );
+    mapApiInstance && (
+      <>
+        <View>
+          <Subscribe>
+            <Map mapApiInstance={mapApiInstance} />
+          </Subscribe>
+        </View>
+      </>
+    )
+  )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
-  },
-});
+const styles = StyleSheet.create({})
