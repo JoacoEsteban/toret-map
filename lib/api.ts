@@ -1,7 +1,6 @@
 import {
   BehaviorSubject,
   distinctUntilChanged,
-  filter,
   map,
   withLatestFrom,
 } from 'rxjs'
@@ -72,6 +71,9 @@ export class MapApi {
   public UserLocation$ = this.UserLocation.asObservable()
   public useUserLocation = bind(this.UserLocation$)[0]
 
+  private UpdatingUserLocation = new BehaviorSubject(false)
+  public UpdatingUserLocation$ = this.UpdatingUserLocation.asObservable()
+
   async requestLocation() {
     // let { status } = await ExpoLocation.requestBackgroundPermissionsAsync();
     let { status } = await ExpoLocation.requestForegroundPermissionsAsync()
@@ -86,8 +88,15 @@ export class MapApi {
   }
 
   async updateUserLocation() {
-    let location = await ExpoLocation.getCurrentPositionAsync({})
-    this.UserLocation.next(await locationWithAdress(location))
+    if (this.UpdatingUserLocation.value) return
+
+    try {
+      this.UpdatingUserLocation.next(true)
+      let location = await ExpoLocation.getCurrentPositionAsync({})
+      this.UserLocation.next(await locationWithAdress(location))
+    } finally {
+      this.UpdatingUserLocation.next(false)
+    }
   }
 
   selectToret(marker: ToretMarker['id'] | null) {
