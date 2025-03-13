@@ -4,14 +4,15 @@ import { Location, MapApi, locationToRegion } from '@/lib/api'
 import React, { useEffect, useRef } from 'react'
 import { StyleSheet } from 'react-native'
 import { useColorScheme } from '@/components/useColorScheme'
-import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps'
+import MapView, { MapMarker, Marker, PROVIDER_DEFAULT } from 'react-native-maps'
 import { LocateUserButton } from './LocateUserButton'
 import { Subject, filter, map, take, withLatestFrom } from 'rxjs'
-import { NotNullTuple } from '@/lib/types'
+import { NotNullTuple, ToretMarker } from '@/lib/types'
 
 class Controller {
-  public centerInLocation$$ = new Subject<void>()
-  public mapRef$$ = new Subject<MapView>()
+  private centerInLocation$$ = new Subject<void>()
+  private mapRef$$ = new Subject<MapView>()
+  private markerRefs$$ = new Subject<Map<ToretMarker['id'], MapMarker | null>>()
 
   constructor(private readonly mapApi: MapApi) {
     this.centerInLocation$$
@@ -26,10 +27,28 @@ class Controller {
       .subscribe(([location, mapRef]) => {
         mapRef?.animateToRegion(locationToRegion(location))
       })
+
+    this.mapApi.SelectedToret$.pipe(
+      withLatestFrom(this.markerRefs$$),
+      filter(function (values): values is NotNullTuple<typeof values> {
+        const [toret, markers] = values
+        return Boolean(toret && markers)
+      }),
+    ).subscribe(([toret, markers]) => {
+      const marker = markers.get(toret.id)
+      if (marker) {
+        marker.showCallout()
+      }
+    })
   }
 
-  public onMapReady(mapRef: MapView) {
+  public onMapReady(
+    mapRef: MapView,
+    markerRefs: Map<ToretMarker['id'], MapMarker | null>,
+  ) {
     this.mapRef$$.next(mapRef)
+    this.markerRefs$$.next(markerRefs)
+
     this.mapApi.UserLocation$.pipe(
       filter((item) => item !== null),
       take(1),
@@ -40,18 +59,26 @@ class Controller {
     await this.mapApi.updateUserLocation()
     this.centerInLocation$$.next()
   }
+
+  public onMarkerSelect(id: ToretMarker['id'] | null) {
+    this.mapApi.selectToret(id)
+  }
 }
 
-const Map = ({ mapApiInstance }: { mapApiInstance: MapApi }) => {
+const ToretMap = ({ mapApiInstance }: { mapApiInstance: MapApi }) => {
   const theme = useColorScheme()
   const markers = mapApiInstance.useToretList()
   const mapStyle = theme === 'dark' ? NightMapTheme : []
   const mapRef = useRef<MapView>(null)
+  const markerRefs = useRef(new Map<ToretMarker['id'], MapMarker | null>())
   const controller = useRef(new Controller(mapApiInstance))
 
   useEffect(
     () =>
-      void (mapRef.current && controller.current.onMapReady(mapRef.current)),
+      void (
+        mapRef.current &&
+        controller.current.onMapReady(mapRef.current, markerRefs.current)
+      ),
     [mapRef],
   )
 
@@ -66,9 +93,12 @@ const Map = ({ mapApiInstance }: { mapApiInstance: MapApi }) => {
         initialRegion={Turin}
         rotateEnabled={false}
         showsUserLocation={true}
-        userInterfaceStyle={theme}>
+        userInterfaceStyle={theme}
+        onMarkerDeselect={() => controller.current.onMarkerSelect(null)}>
         {markers.map((marker, index) => (
           <Marker
+            ref={(ref) => markerRefs.current.set(marker.id, ref)}
+            onSelect={() => controller.current.onMarkerSelect(marker.id)}
             key={marker.id}
             coordinate={marker.latlng}
             title={marker.address}
@@ -91,4 +121,4 @@ const styles = StyleSheet.create({
   },
 })
 
-export default Map
+export default ToretMap
