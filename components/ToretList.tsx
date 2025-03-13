@@ -4,6 +4,7 @@ import React, { useRef } from 'react'
 import { FlatList, StyleSheet, Pressable } from 'react-native'
 import { map } from 'rxjs'
 import { Text, useThemeColor, useThemedProp } from './Themed'
+import { router } from 'expo-router'
 
 const Item = ({
   item,
@@ -25,9 +26,9 @@ const Item = ({
       }),
       borderWidth: 1,
       paddingHorizontal: 14,
-      paddingVertical: 8,
+      paddingVertical: 14,
       borderRadius: 6,
-      marginVertical: 2,
+      marginVertical: 6,
     },
     title: {},
   })
@@ -42,8 +43,9 @@ const Item = ({
 }
 
 export const ToretList = ({ mapApiInstance }: { mapApiInstance: MapApi }) => {
-  const handleItemPress = (item: { id: string | number; title: string }) => {
-    // TODO
+  const handleItemPress = (item: { id: number; title: string }) => {
+    router.push(`/`)
+    mapApiInstance.selectToret(item.id)
   }
 
   const useItems = useRef(
