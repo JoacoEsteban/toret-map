@@ -1,4 +1,4 @@
-export type Marker = {
+export type ToretMarker = {
   id: number
   latlng: { latitude: number; longitude: number }
   address: string

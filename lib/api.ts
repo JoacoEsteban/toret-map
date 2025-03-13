@@ -1,5 +1,11 @@
-import { BehaviorSubject } from 'rxjs'
-import { Marker } from './types'
+import {
+  BehaviorSubject,
+  distinctUntilChanged,
+  filter,
+  map,
+  withLatestFrom,
+} from 'rxjs'
+import { ToretMarker, NotNullTuple } from './types'
 import { StaticToretList } from '@/constants/toret-list'
 import { bind, shareLatest } from '@react-rxjs/core'
 import * as ExpoLocation from 'expo-location'
@@ -38,11 +44,26 @@ export async function locationWithAdress(
 }
 
 export class MapApi {
-  private ToretList = new BehaviorSubject<Marker[]>(
+  private ToretList = new BehaviorSubject<ToretMarker[]>(
     StaticToretList.filter((marker) => !marker.is_removed),
+  )
+  private ToretListMap = this.ToretList.pipe(
+    map(
+      (markers) =>
+        new Map(markers.map((marker) => [marker.id, marker] as const)),
+    ),
   )
   public ToretList$ = this.ToretList.asObservable().pipe(shareLatest())
   public useToretList = bind(this.ToretList$, [])[0]
+
+  private SelectedToret = new BehaviorSubject<ToretMarker['id'] | null>(null)
+  public SelectedToret$ = this.SelectedToret.pipe(
+    distinctUntilChanged(),
+    withLatestFrom(this.ToretListMap),
+    map(([selected, map]) => (selected ? map.get(selected) : null)),
+    shareLatest(),
+  )
+  public useSelectedToret = bind(this.SelectedToret$, null)[0]
 
   private HasLocationAccess = new BehaviorSubject(false)
   public HasLocationAccess$ = this.HasLocationAccess.asObservable()
@@ -67,5 +88,9 @@ export class MapApi {
   async updateUserLocation() {
     let location = await ExpoLocation.getCurrentPositionAsync({})
     this.UserLocation.next(await locationWithAdress(location))
+  }
+
+  selectToret(marker: ToretMarker['id'] | null) {
+    this.SelectedToret.next(marker)
   }
 }
