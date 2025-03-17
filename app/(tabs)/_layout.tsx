@@ -3,7 +3,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import { Tabs } from 'expo-router'
 
 import Colors from '@/constants/Colors'
-import { useColorScheme } from '@/components/useColorScheme'
+import { useColorScheme } from '@/lib/color-scheme'
 import { useClientOnlyValue } from '@/components/useClientOnlyValue'
 import { MapApi } from '@/lib/api'
 import { GlobalContext } from '../global-context'
