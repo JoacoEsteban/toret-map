@@ -1,10 +1,9 @@
-import { MaterialIcons } from '@expo/vector-icons'
-import { ActivityIndicator, Pressable, StyleSheet } from 'react-native'
 import { useThemeColor } from './Themed'
 import { useContext } from 'react'
 import { GlobalContext } from '@/app/global-context'
 import { delayWhen, distinctUntilChanged, interval, of } from 'rxjs'
 import { contextBinder } from '@react-rxjs/utils'
+import { IconButton } from './IconButton'
 
 const contextBind = contextBinder(() => useContext(GlobalContext))
 
@@ -19,30 +18,23 @@ const [useUpdatingUserLocation] = contextBind((context) => {
 })
 
 export const LocateUserButton = ({ onPress }: { onPress: () => void }) => {
-  const styles = StyleSheet.create({
-    container: {
-      position: 'absolute',
-      backgroundColor: useThemeColor('background'),
-      bottom: 20,
-      right: 20,
-      padding: 15,
-      borderRadius: '100%',
-      boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.2)',
-    },
-  })
-
-  const size = 28
-  const color = useThemeColor('text')
+  const styles = {
+    position: 'absolute',
+    backgroundColor: useThemeColor('background'),
+    bottom: 200,
+    right: 20,
+  } as const
 
   const isUpdatingUserLocation = useUpdatingUserLocation()
 
   return (
-    <Pressable style={styles.container} onPress={onPress}>
-      {isUpdatingUserLocation ? (
-        <ActivityIndicator size={size} color={color} />
-      ) : (
-        <MaterialIcons size={size} color={color} name="my-location" />
-      )}
-    </Pressable>
+    <IconButton
+      style={styles}
+      size={52}
+      iconSize={28}
+      icon="my-location"
+      loading={isUpdatingUserLocation}
+      onPress={onPress}
+    />
   )
 }
