@@ -3,10 +3,15 @@
  * https://docs.expo.io/guides/color-schemes/
  */
 
-import { Text as DefaultText, View as DefaultView } from 'react-native'
+import {
+  Text as DefaultText,
+  View as DefaultView,
+  TextInput as DefaultTextInput,
+} from 'react-native'
 
 import Colors from '@/constants/Colors'
 import { useColorScheme } from '../lib/color-scheme'
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
 
 type ThemeProps = {
   color?: {
@@ -18,6 +23,10 @@ export type ColorName = keyof typeof Colors.light & keyof typeof Colors.dark
 
 export type TextProps = ThemeProps & DefaultText['props']
 export type ViewProps = ThemeProps & DefaultView['props']
+export type TextInputProps = ThemeProps &
+  DefaultTextInput['props'] & {
+    bottomSheet?: boolean
+  }
 
 export function useThemedProp(props: { light: string; dark: string }) {
   const theme = useColorScheme()
@@ -74,4 +83,16 @@ export function View(props: ViewProps) {
   const backgroundColor = useFallbackedThemeProp(color, 'background')
 
   return <DefaultView style={[{ backgroundColor }, style]} {...otherProps} />
+}
+
+export function TextInput(props: TextInputProps) {
+  const { style, color, bottomSheet, ...otherProps } = props
+  const Render = bottomSheet ? BottomSheetTextInput : DefaultTextInput
+
+  return (
+    <Render
+      style={[{ color: useFallbackedThemeProp(color, 'text') }, style]}
+      {...otherProps}
+    />
+  )
 }
