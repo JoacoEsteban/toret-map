@@ -18,12 +18,17 @@ class Controller {
   constructor(private readonly mapApi: MapApi) {
     this.centerInLocation$$
       .pipe(
-        withLatestFrom(this.mapApi.UserLocation$, this.mapRef$$),
+        withLatestFrom(
+          this.mapApi.UserLocation$,
+          this.mapApi.UpdatingUserLocation$,
+          this.mapRef$$,
+        ),
+        filter(([, , updating]) => !updating),
         filter(function (values): values is NotNullTuple<typeof values> {
-          const [, location, mapRef] = values
+          const [, location, , mapRef] = values
           return Boolean(location && mapRef)
         }),
-        map(([, location, mapRef]) => [location, mapRef] as const),
+        map(([, location, , mapRef]) => [location, mapRef] as const),
       )
       .subscribe(([location, mapRef]) => {
         mapRef?.animateToRegion(locationToRegion(location))
