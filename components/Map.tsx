@@ -8,6 +8,7 @@ import MapView, { MapMarker, Marker, PROVIDER_DEFAULT } from 'react-native-maps'
 import { LocateUserButton } from './LocateUserButton'
 import { Subject, filter, map, take, withLatestFrom } from 'rxjs'
 import { NotNullTuple, ToretMarker } from '@/lib/types'
+import { useInstance } from '@/lib/react'
 
 class Controller {
   private centerInLocation$$ = new Subject<void>()
@@ -73,14 +74,13 @@ const ToretMap = ({ mapApiInstance }: { mapApiInstance: MapApi }) => {
     [theme],
   )
   const mapRef = useRef<MapView>(null)
-  const markerRefs = useRef(new Map<ToretMarker['id'], MapMarker | null>())
-  const controller = useRef(new Controller(mapApiInstance))
+  const markerRefs = useInstance(Map<ToretMarker['id'], MapMarker | null>)
+  const controller = useInstance(Controller, mapApiInstance)
 
   useEffect(
     () =>
       void (
-        mapRef.current &&
-        controller.current.onMapReady(mapRef.current, markerRefs.current)
+        mapRef.current && controller.onMapReady(mapRef.current, markerRefs)
       ),
     [mapRef],
   )
@@ -97,11 +97,11 @@ const ToretMap = ({ mapApiInstance }: { mapApiInstance: MapApi }) => {
         rotateEnabled={false}
         showsUserLocation={true}
         userInterfaceStyle={theme}
-        onMarkerDeselect={() => controller.current.onMarkerSelect(null)}>
+        onMarkerDeselect={() => controller.onMarkerSelect(null)}>
         {markers.map((marker, index) => (
           <Marker
-            ref={(ref) => markerRefs.current.set(marker.id, ref)}
-            onSelect={() => controller.current.onMarkerSelect(marker.id)}
+            ref={(ref) => markerRefs.set(marker.id, ref)}
+            onSelect={() => controller.onMarkerSelect(marker.id)}
             key={marker.id}
             coordinate={marker.latlng}
             title={marker.address}
@@ -110,7 +110,7 @@ const ToretMap = ({ mapApiInstance }: { mapApiInstance: MapApi }) => {
       </MapView>
       <LocateUserButton
         onPress={async () => {
-          await controller.current.centerInLocation()
+          await controller.centerInLocation()
         }}
       />
     </>
