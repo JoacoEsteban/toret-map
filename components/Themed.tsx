@@ -14,6 +14,7 @@ type ThemeProps = {
     dark: string
   }
 }
+export type ColorName = keyof typeof Colors.light & keyof typeof Colors.dark
 
 export type TextProps = ThemeProps & DefaultText['props']
 export type ViewProps = ThemeProps & DefaultView['props']
@@ -25,9 +26,7 @@ export function useThemedProp(props: { light: string; dark: string }) {
   return colorFromProps
 }
 
-export function useThemeColor(
-  colorName: keyof typeof Colors.light & keyof typeof Colors.dark,
-) {
+export function useThemeColor(colorName: ColorName) {
   const theme = useColorScheme()
   return Colors[theme][colorName]
 }
@@ -38,7 +37,7 @@ export function useFallbackedThemeProp(
 ): string
 export function useFallbackedThemeProp(
   props: { light: string; dark: string } | undefined,
-  fallback: keyof typeof Colors.light & keyof typeof Colors.dark,
+  fallback: ColorName,
 ): string
 export function useFallbackedThemeProp(
   props: undefined,
@@ -46,7 +45,7 @@ export function useFallbackedThemeProp(
 ): void
 export function useFallbackedThemeProp(
   props: { light: string; dark: string } | undefined,
-  fallback: (keyof typeof Colors.light & keyof typeof Colors.dark) | undefined,
+  fallback: ColorName | undefined,
 ): string {
   if (!props && !fallback) {
     throw new Error('Either props or fallback must be provided')
