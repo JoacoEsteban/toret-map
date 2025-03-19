@@ -6,7 +6,7 @@ import { StyleSheet } from 'react-native'
 import { useColorScheme } from '@/lib/color-scheme'
 import MapView, { MapMarker, Marker, PROVIDER_DEFAULT } from 'react-native-maps'
 import { LocateUserButton } from './LocateUserButton'
-import { Subject, filter, map, take, withLatestFrom } from 'rxjs'
+import { Subject, filter, map, pairwise, take, withLatestFrom } from 'rxjs'
 import { NotNullTuple, ToretMarker } from '@/lib/types'
 import { useInstance } from '@/lib/react'
 
@@ -35,15 +35,27 @@ class Controller {
       })
 
     this.mapApi.SelectedToret$.pipe(
-      withLatestFrom(this.markerRefs$$),
-      filter(function (values): values is NotNullTuple<typeof values> {
-        const [toret, markers] = values
-        return Boolean(toret && markers)
-      }),
-    ).subscribe(([toret, markers]) => {
-      const marker = markers.get(toret.id)
-      if (marker) {
-        marker.showCallout()
+      pairwise(),
+      filter(([prev, toret]) => prev?.id !== toret?.id),
+      withLatestFrom(this.markerRefs$$, this.mapRef$$),
+    ).subscribe(([[prev, toret], markers, mapRef]) => {
+      if (prev && !toret) {
+        const prevMarker = markers.get(prev.id)
+        setTimeout(() => {
+          prevMarker?.hideCallout()
+        })
+      }
+
+      if (toret) {
+        const marker = markers.get(toret.id)
+        const animationDuration = 300
+        mapRef.animateToRegion(
+          locationToRegion(toret.latlng),
+          animationDuration,
+        )
+        setTimeout(() => {
+          marker?.showCallout()
+        }, animationDuration)
       }
     })
   }
