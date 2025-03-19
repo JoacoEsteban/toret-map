@@ -96,8 +96,7 @@ const ToretMap = ({ mapApiInstance }: { mapApiInstance: MapApi }) => {
         initialRegion={Turin}
         rotateEnabled={false}
         showsUserLocation={true}
-        userInterfaceStyle={theme}
-        onMarkerDeselect={() => controller.onMarkerSelect(null)}>
+        userInterfaceStyle={theme}>
         {markers.map((marker, index) => (
           <Marker
             ref={(ref) => markerRefs.set(marker.id, ref)}
