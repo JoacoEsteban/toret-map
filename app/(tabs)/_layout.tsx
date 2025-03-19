@@ -7,6 +7,7 @@ import { useColorScheme } from '@/lib/color-scheme'
 import { useClientOnlyValue } from '@/components/useClientOnlyValue'
 import { MapApi } from '@/lib/api'
 import { GlobalContext } from '../global-context'
+import { onMounted, useInstance } from '@/lib/react'
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: {
@@ -20,11 +21,12 @@ function TabBarIcon(props: {
 
 export default function TabLayout() {
   const colorScheme = useColorScheme()
-  const mapApi = useRef(new MapApi())
-  useEffect(() => void mapApi.current.requestLocation(), [])
+  const mapApi = useInstance(MapApi)
+
+  onMounted(() => void mapApi.requestLocation())
 
   return (
-    <GlobalContext.Provider value={{ mapApiInstance: mapApi.current }}>
+    <GlobalContext.Provider value={{ mapApiInstance: mapApi }}>
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
