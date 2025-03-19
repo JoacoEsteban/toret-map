@@ -12,6 +12,7 @@ import 'react-native-reanimated'
 
 import { useColorScheme } from '@/lib/color-scheme'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { Subscribe } from '@react-rxjs/core'
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -47,7 +48,11 @@ export default function RootLayout() {
     return null
   }
 
-  return <RootLayoutNav />
+  return (
+    <Subscribe>
+      <RootLayoutNav />
+    </Subscribe>
+  )
 }
 
 function RootLayoutNav() {

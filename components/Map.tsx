@@ -1,7 +1,7 @@
 import { Turin } from '@/constants/location'
 import { NightMapTheme } from '@/constants/map-themes'
 import { Location, MapApi, locationToRegion } from '@/lib/api'
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 import { StyleSheet } from 'react-native'
 import { useColorScheme } from '@/lib/color-scheme'
 import MapView, { MapMarker, Marker, PROVIDER_DEFAULT } from 'react-native-maps'
@@ -68,7 +68,10 @@ class Controller {
 const ToretMap = ({ mapApiInstance }: { mapApiInstance: MapApi }) => {
   const theme = useColorScheme()
   const markers = mapApiInstance.useToretList()
-  const mapStyle = theme === 'dark' ? NightMapTheme : []
+  const mapStyle = useMemo(
+    () => (theme === 'dark' ? NightMapTheme : []),
+    [theme],
+  )
   const mapRef = useRef<MapView>(null)
   const markerRefs = useRef(new Map<ToretMarker['id'], MapMarker | null>())
   const controller = useRef(new Controller(mapApiInstance))
