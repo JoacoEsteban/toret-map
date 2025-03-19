@@ -31,6 +31,11 @@ export function useThemeColor(colorName: ColorName) {
   return Colors[theme][colorName]
 }
 
+export function useTheme() {
+  const theme = useColorScheme()
+  return Colors[theme]
+}
+
 export function useFallbackedThemeProp(
   props: { light: string; dark: string },
   fallback: undefined,
