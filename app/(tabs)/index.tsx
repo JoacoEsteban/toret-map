@@ -1,50 +1,70 @@
-import { StyleSheet } from 'react-native'
-import { Text, View, useThemeColor } from '@/components/Themed'
+import { View, useThemeColor } from '@/components/Themed'
 import ToretMap from '@/components/Map'
-import { Subscribe } from '@react-rxjs/core'
 import { useContext, useRef } from 'react'
 import { GlobalContext } from '../global-context'
-import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet'
-import { onMounted } from '@/lib/react'
+import { BottomSheetModal } from '@gorhom/bottom-sheet'
+import { onMounted, useInstance, useSubscriptions } from '@/lib/react'
+import { Else, If, Then } from 'react-if'
+import { ToretListSearchApi } from '@/lib/api/search'
+import ToretView from '@/components/ToretView'
+import ToretListView from '@/components/ToretListView'
 
 export default function MapScreen() {
   const { mapApiInstance } = useContext(GlobalContext) ?? {}
-  const bgStyle = { backgroundColor: useThemeColor('background') }
-  const selectedToret = mapApiInstance?.useSelectedToret()
-  const bottomSheetRef = useRef<BottomSheet>(null)
+  if (!mapApiInstance) return null
 
-  onMounted(() => {
-    mapApiInstance?.SelectedToret$.subscribe((selectedToret) => {
+  const selectedToret = mapApiInstance.useSelectedToret()
+  const bgStyle = { backgroundColor: useThemeColor('background') }
+  const bottomSheetRef = useRef<BottomSheetModal>(null)
+
+  useSubscriptions(() => [
+    mapApiInstance.SelectedToret$.subscribe((selectedToret) => {
       if (bottomSheetRef.current) {
-        if (selectedToret) bottomSheetRef.current?.snapToIndex(2)
-        else bottomSheetRef.current?.close()
+        if (selectedToret) {
+          bottomSheetRef.current.present()
+        }
       }
-    })
-  })
+    }),
+  ])
+  onMounted(() => bottomSheetRef.current?.present())
+  const searchController = useInstance(
+    ToretListSearchApi,
+    mapApiInstance.ToretList$,
+  )
 
   return (
-    mapApiInstance && (
-      <>
-        <View>
-          <Subscribe>
-            <ToretMap mapApiInstance={mapApiInstance} />
-            <BottomSheet
-              index={-1}
-              ref={bottomSheetRef}
-              snapPoints={['50%', '80%']}
-              backgroundStyle={bgStyle}
-              handleIndicatorStyle={{
-                backgroundColor: useThemeColor('text'),
-              }}>
-              <BottomSheetView style={bgStyle}>
-                <Text>{selectedToret?.address}</Text>
-              </BottomSheetView>
-            </BottomSheet>
-          </Subscribe>
-        </View>
-      </>
-    )
+    <View>
+      <ToretMap mapApiInstance={mapApiInstance} />
+      <BottomSheetModal
+        enablePanDownToClose={false}
+        enableDynamicSizing={false}
+        ref={bottomSheetRef}
+        backgroundStyle={bgStyle}
+        snapPoints={['20%', '80%']}
+        handleIndicatorStyle={{
+          backgroundColor: useThemeColor('text'),
+        }}>
+        <If condition={Boolean(selectedToret)}>
+          <Then>
+            {() => (
+              <ToretView
+                onClose={() => mapApiInstance.selectToret(null)}
+                toret={selectedToret!}
+              />
+            )}
+          </Then>
+          <Else>
+            <ToretListView
+              controller={searchController}
+              onItemPress={(item: { id: number; title: string }) => {
+                bottomSheetRef.current?.collapse()
+                mapApiInstance.selectToret(item.id)
+              }}
+              onSearchFocus={() => bottomSheetRef.current?.snapToIndex(1)}
+            />
+          </Else>
+        </If>
+      </BottomSheetModal>
+    </View>
   )
 }
-
-const styles = StyleSheet.create({})
